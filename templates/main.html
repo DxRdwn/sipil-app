@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Analisis Titik Pondasi Kritis</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Roboto", sans-serif;
+        background-color: #f0f4f8;
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+      }
+
+      .header {
+        background-color: #007bff;
+        color: white;
+        padding: 20px 0;
+        text-align: center;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+        margin-bottom: 70px;
+      }
+
+      .header h1 {
+        margin: 0;
+        font-size: 2rem;
+      }
+
+      @media (max-width: 600px) {
+        .header h1 {
+          font-size: 1.5rem;
+        }
+      }
+
+      .container {
+        max-width: 800px;
+        margin: 40px auto;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+      }
+
+      .container h2 {
+        color: #333;
+        font-size: 1.5rem;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 20px;
+      }
+
+      .form-group label {
+        margin-bottom: 8px;
+        color: #555;
+        font-weight: 500;
+      }
+
+      .form-group input {
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 1rem;
+      }
+
+      .form-group input:focus {
+        border-color: #007bff;
+        outline: none;
+        box-shadow: 0 0 4px rgba(0, 123, 255, 0.4);
+      }
+
+      .upload-btn {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 4px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+
+      .upload-btn:hover {
+        background-color: #0056b3;
+      }
+
+      .upload-btn.loading {
+        cursor: wait;
+      }
+
+      .upload-btn.loading::after {
+        content: "";
+        display: inline-block;
+        margin-left: 10px;
+        border: 2px solid #fff;
+        border-top: 2px solid #0056b3;
+        border-radius: 50%;
+        width: 14px;
+        height: 14px;
+        animation: spin 0.8s linear infinite;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .results {
+        margin-top: 20px;
+        padding: 15px;
+        background-color: #e9f7ef;
+        border: 1px solid #d4edda;
+        border-radius: 4px;
+        color: #155724;
+        font-weight: 500;
+      }
+
+      .footer {
+        text-align: center;
+        margin-top: 30px;
+        padding: 20px;
+        background-color: #f8f9fa;
+        color: #6c757d;
+        border-top: 1px solid #e9ecef;
+        bottom: 0;
+      }
+
+      .footer a {
+        color: #007bff;
+        text-decoration: none;
+      }
+
+      .footer a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>Analisis Titik Pondasi Kritis</h1>
+      <p>Mendeteksi titik pondasi kritis berdasarkan hasil SAP2000</p>
+    </div>
+
+    <div class="container">
+      <h2>Unggah File Output SAP2000</h2>
+      <form action="/upload" method="POST" enctype="multipart/form-data">
+        <div class="form-group">
+          <label for="file">Pilih File Excel:</label>
+          <input type="file" id="file" name="file" required />
+        </div>
+        <button type="submit" class="upload-btn" id="upload-btn">
+          Unggah dan Analisis
+        </button>
+      </form>
+
+      <div class="results" id="results" style="display: none">
+        <p>Hasil analisis berhasil diunduh!</p>
+        <a href="#" id="download-link">Unduh Hasil</a>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const form = document.querySelector("form");
+        const results = document.getElementById("results");
+        const downloadLink = document.getElementById("download-link");
+        const uploadBtn = document.getElementById("upload-btn");
+
+        form.addEventListener("submit", function (e) {
+          e.preventDefault();
+
+          uploadBtn.classList.add("loading");
+          uploadBtn.disabled = true;
+
+          const formData = new FormData(form);
+          const fileInput = document.getElementById("file");
+          const uploadedFileName = fileInput.files[0].name;
+          const outputFileName = `hasil_${uploadedFileName}`;
+
+          fetch("/upload", {
+            method: "POST",
+            body: formData,
+          })
+            .then((response) => response.blob())
+            .then((blob) => {
+              const url = window.URL.createObjectURL(blob);
+              downloadLink.href = url;
+              downloadLink.download = outputFileName;
+              results.style.display = "block";
+            })
+            .catch((error) => {
+              alert("Terjadi kesalahan saat memproses file: " + error);
+            })
+            .finally(() => {
+              uploadBtn.classList.remove("loading");
+              uploadBtn.disabled = false;
+            });
+        });
+      });
+    </script>
+  </body>
+</html>
